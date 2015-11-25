@@ -1,5 +1,5 @@
-/gameOfLife.layout
-/gameOfLife.dev
-/Makefile.win
-/gameOfLife.exe
-/*.o
+/gameOfLife/gameOfLife.layout
+/gameOfLife/gameOfLife.dev
+/gameOfLife/Makefile.win
+/gameOfLife/gameOfLife.exe
+/gameOfLife/*.o
