@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#define ICON_VIVO  '*'
+#define ICON_MORTO '.'
 typedef struct __celula{
     int status;
     int x;
@@ -12,14 +13,18 @@ void getNumLinesAndColumns(int *, int *);
 celula** allocAndInitialize(int, int);
 void getCellAlive(celula**);
 void printArray(celula**, int, int);
-void nextGeneration(celula**, int, int);
+celula** nextGeneration(celula**, int, int);
+int getQtdVizinhosVivosExtreme(celula**, int, int, int, int);
+
 
 void main(void){
     config();
+
+
+    celula **celulas;
     int lines   	 = 0;
     int columns 	 = 0; 
     int contGeration = 1;
-    celula **celulas;
     
 	//getQtdVizinhosVivos(**celulas, 1, 1);
     //View.dimensions(&linha, &coluna);
@@ -32,11 +37,13 @@ void main(void){
   	
 	getCellAlive(celulas);
   	printArray(celulas, lines, columns);
-  	
+
+
   	char resp;
   	do{
+
   		printf("\nGERACAO %d!!", ++contGeration);
-  		nextGeneration(celulas, lines, columns);
+  		celulas = nextGeneration(celulas, lines, columns);
   		printArray(celulas, lines, columns);
   		
   		//question
@@ -52,23 +59,32 @@ void printArray(celula **celulas, int lines, int columns){
     printf("\n\t");
      for(i = 0; i < lines; i++){
         for(j = 0; j < columns; j++){
-            printf("%d", celulas[i][j].status);
+            char rp = (celulas[i][j].status) ? ICON_VIVO : ICON_MORTO;
+            printf("%c", rp);
         }
         printf("\n\t");
     }
 }
 
-void nextGeneration(celula **celulas, int lines, int columns){
+celula** nextGeneration(celula **celulas, int lines, int columns){
 	celula **celulas2 = allocAndInitialize(lines, columns);
 	int i, j;
 	for(i = 0; i < lines; i++){
 		for(j = 0; j < columns; j++){
-			int qtdVizinhosVivos = getQtdVizinhosVivos(celulas2, i, j);
-			if(qtdVizinhosVivos == 2 || qtdVizinhosVivos == 3){
-				celulas2[i][j].status =  1;
+			int qtdVizinhosVivos = 0;
+			
+            if(i != 0 && j != 0 && i != (lines-1) && j != (columns-1)){
+                qtdVizinhosVivos = getQtdVizinhosVivos(celulas, i, j);
+			}else{
+				qtdVizinhosVivos = getQtdVizinhosVivosExtreme(celulas, i, j, lines, columns);
 			}
+            if(qtdVizinhosVivos == 3 || (celulas[i][j].status && qtdVizinhosVivos == 2)){
+                celulas2[i][j].status =  1;
+            }
+			
 		}
 	}
+	return celulas2;
 }
 
 void getCellAlive(celula **celulas){
@@ -110,13 +126,85 @@ celula** allocAndInitialize(int lines, int columns){
     //initializes
     for(i = 0; i < lines; i++){
 		for(j = 0; j < columns; j++){
-    		celulas[i][j].status = 0;
-			celulas[i][j].x      = i;
-			celulas[i][j].y      = j; 
+            celulas[i][j].status = 0;
+            celulas[i][j].x      = i;
+            celulas[i][j].y      = j;
     	}
     }
     return celulas;
 }
+
+
+int getQtdVizinhosVivosExtreme(celula **celulas, int x, int y, int lines, int columns){
+	int qtdVizinhosVivos = 0;
+	celula vizinhos[8];
+	
+	int prev_x = 0;
+	int prev_y = 0;
+	int next_x = 0;
+	int next_y = 0;
+	
+	//primeira linha
+	if(x == 0){
+		prev_x = lines - 1;
+	}else{
+		prev_x = x - 1;
+	}
+	
+	//última linha
+	if(x == (lines-1)){
+		next_x = 0;
+	}else{
+		next_x = x + 1;
+	}
+	
+	//primeira coluna
+	if(y == 0){
+		prev_y = lines - 1;
+	}else{
+		prev_y = y - 1;
+	}
+	
+	if(y == (columns-1)){
+		prev_y = 0;
+	}else{
+		prev_y = columns-1;
+	}
+	
+	// [linha - 1] [coluna - 1]
+	vizinhos[0] = celulas[ prev_x ] [ prev_y ];
+
+	// [linha - 1] [coluna]
+    vizinhos[1] = celulas[ prev_x ] [ y ];
+
+    // [linha - 1] [coluna + 1]
+    vizinhos[2] = celulas[ prev_x ] [ next_y ];
+
+	// [linha] [coluna - 1]
+	vizinhos[3] = celulas[ x ] [ prev_y ];
+	
+	// [linha] [coluna + 1]
+	vizinhos[4] = celulas[ x ] [ next_y ];
+	
+	// [linha + 1] [coluna - 1]
+	vizinhos[5] = celulas[ next_x ] [ prev_y ];
+	
+	// [linha + 1] [coluna]
+	vizinhos[6] = celulas[ next_x ] [ y ]; 
+	 
+	// [linha + 1] [coluna + 1]
+	vizinhos[7] = celulas[ next_x ] [ next_y ];
+	
+	int i;
+	for(i = 0; i < 8; i++){
+		if(vizinhos[i].status){
+			qtdVizinhosVivos++;
+		}
+	}
+	
+	return qtdVizinhosVivos;
+}
+
 
 int getQtdVizinhosVivos(celula **celulas, int x, int y){
 	int qtdVizinhosVivos = 0;
@@ -125,27 +213,26 @@ int getQtdVizinhosVivos(celula **celulas, int x, int y){
 	//int vizinhoA_x = x-1;
     //int vizinhoA_y = y-1;
 	vizinhos[0] = celulas[ x - 1 ] [ y - 1 ];
-	
+
 	//int vizinhoB_x = x-1;
     //int vizinhoB_y = y;
     vizinhos[1] = celulas[ x - 1 ] [ y ];
-    
-    
+
     //int vizinhoC_x = x-1;
     //int vizinhoC_y = y+1;
     vizinhos[2] = celulas[ x - 1 ] [ y + 1 ];
-    
+
 	//int vizinhoD_x = x;
 	//int vizinhoD_y = y-1;
 	vizinhos[3] = celulas[ x ] [ y - 1];
 	
 	//int vizinhoE_x = x;
 	//int vizinhoE_y = y+1;
-	vizinhos[4] = celulas [ x ] [ y + 1 ];
+	vizinhos[4] = celulas[ x ] [ y + 1 ];
 	
 	//int vizinhoF_x = x + 1;
 	//int vizinhoF_y = y - 1;
-	vizinhos[5] = celulas [ x + 1 ] [ y - 1 ];
+	vizinhos[5] = celulas[ x + 1 ] [ y - 1 ];
 	
 	//int vizinhoG_x = x + 1;
 	//int vizinhoG_y = y;
@@ -153,7 +240,7 @@ int getQtdVizinhosVivos(celula **celulas, int x, int y){
 	 
 	//int vizinhoH_x = x + 1;
 	//int vizinhoH_y = y + 1;
-	vizinhos[7] = celulas [ x + 1] [ y + 1 ];
+	vizinhos[7] = celulas[ x + 1] [ y + 1 ];
 	
 	int i;
 	for(i = 0; i < 8; i++){
