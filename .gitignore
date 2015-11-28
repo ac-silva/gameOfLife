@@ -3,3 +3,4 @@
 /gameOfLife/Makefile.win
 /gameOfLife/gameOfLife.exe
 /gameOfLife/*.o
+/gameOfLife/.idea/
