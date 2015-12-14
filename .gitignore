@@ -1,6 +1,1 @@
-/gameOfLife/gameOfLife.layout
-/gameOfLife/gameOfLife.dev
-/gameOfLife/Makefile.win
-/gameOfLife/gameOfLife.exe
-/gameOfLife/*.o
-/gameOfLife/.idea/
+/main
